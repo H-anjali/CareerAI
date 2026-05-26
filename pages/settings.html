@@ -1,0 +1,23 @@
+<!-- ── SETTINGS ── -->
+<div class="screen" id="s-settings">
+  <div class="ph"><div class="ph-title">⚙️ Settings</div><div class="ph-sub">Manage your account</div></div>
+  <div style="max-width:460px;">
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">👤 Profile</div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="st-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (read-only)</label>
+        <input class="form-input" id="st-email" readonly style="background:#f9fafb;color:var(--muted);">
+      </div>
+      <button class="btn btn-primary" onclick="saveProfile()">💾 Save Changes</button>
+    </div>
+    <div class="card" style="border-color:rgba(220,38,38,0.2);background:rgba(220,38,38,0.01);">
+      <div class="card-title" style="color:var(--danger);">⚠️ Danger Zone</div>
+      <div style="font-size:.83rem;color:var(--muted);margin-bottom:.875rem;">Permanently delete your account and all data. Cannot be undone.</div>
+      <button class="btn btn-danger" onclick="delAccount()">🗑️ Delete My Account</button>
+    </div>
+  </div>
+</div>

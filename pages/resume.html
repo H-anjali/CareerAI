@@ -1,0 +1,76 @@
+<!-- ── RESUME ── -->
+<div class="screen" id="s-resume">
+  <div class="ph">
+    <div class="ph-title">📄 Resume Analyzer</div>
+    <div class="ph-sub">AI-powered ATS score and improvement tips</div>
+  </div>
+  <div class="two-col">
+    <div class="col-sm">
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Upload Resume</div>
+        <div class="upload-zone" id="dropzone"
+          onclick="document.getElementById('file-inp').click()"
+          ondragover="ev.preventDefault();this.classList.add('over')"
+          ondrop="handleDrop(event)"
+          ondragleave="this.classList.remove('over')">
+          <span class="upload-icon">📂</span>
+          <div class="upload-title">Drop resume here or click to browse</div>
+          <div class="upload-sub">Supports PDF, DOC, DOCX</div>
+        </div>
+        <input type="file" id="file-inp" accept=".pdf,.doc,.docx" style="display:none" onchange="pickFile(event)">
+        <div id="file-chip" class="file-chip" style="display:none;">
+          <span>✅</span>
+          <div><div class="file-chip-name" id="fc-name"></div><div class="file-chip-size" id="fc-size"></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Target Role</div>
+        <select class="form-select" id="r-role">
+          <option>Frontend Developer</option>
+          <option>Backend Developer</option>
+          <option>Full Stack Developer</option>
+          <option>Data Analyst</option>
+          <option>ML Engineer</option>
+          <option>Product Manager</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="r-btn" onclick="doResume()" disabled>🔍 Analyze Resume →</button>
+      <div id="r-load" class="loading-box" style="display:none;">
+        <div class="spinner"></div>
+        <span>🤖 AI is analyzing your resume...</span>
+      </div>
+    </div>
+    <div class="col-main" id="r-results" style="display:none;">
+      <div class="card" style="margin-bottom:.875rem;">
+        <div style="display:flex;align-items:center;gap:1.25rem;">
+          <div class="ats-wrap">
+            <div class="ats-circle" id="ats-circle">
+              <div class="ats-num" id="ats-num">0</div>
+              <div class="ats-lbl">ATS Score</div>
+            </div>
+          </div>
+          <div style="flex:1;font-size:.84rem;color:var(--text);line-height:1.65;" id="r-summary"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Section Scores</div>
+        <div id="r-sections"></div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Issues & Recommendations</div>
+        <div id="r-issues"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Keywords</div>
+        <div style="margin-bottom:.75rem;">
+          <div style="font-size:.75rem;font-weight:700;color:var(--success);margin-bottom:.4rem;">✅ Found in Resume</div>
+          <div class="tag-cloud" id="r-kw-have"></div>
+        </div>
+        <div>
+          <div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem;">❌ Missing Keywords</div>
+          <div class="tag-cloud" id="r-kw-miss"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+<!-- ── DASHBOARD ── -->
+<div class="screen active" id="s-dashboard">
+  <div class="ph">
+    <div class="ph-title">Welcome back, <span id="d-name">User</span> 👋</div>
+    <div class="ph-sub">Your career readiness overview</div>
+  </div>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon">📄</div>
+      <div class="metric-label">Resume Score</div>
+      <div class="metric-value"><span id="d-ats">0</span><span class="metric-unit">/100</span></div>
+      <div class="metric-note" id="d-ats-note">Not analyzed yet</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">🎤</div>
+      <div class="metric-label">Interviews Done</div>
+      <div class="metric-value" id="d-iv">0</div>
+      <div class="metric-note" id="d-iv-note">Start practicing</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">📊</div>
+      <div class="metric-label">Skill Match</div>
+      <div class="metric-value"><span id="d-skill">0</span><span class="metric-unit">%</span></div>
+      <div class="metric-note" id="d-skill-note">Analyze skills</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">🔥</div>
+      <div class="metric-label">Day Streak</div>
+      <div class="metric-value"><span id="d-streak">0</span><span class="metric-unit">d</span></div>
+      <div class="metric-note">Keep it going!</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+    <div class="card">
+      <div class="card-title">📈 Interview Performance</div>
+      <div id="d-chart" class="chart-wrap" style="color:var(--muted);font-size:.8rem;align-items:center;justify-content:center;">No data yet</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Weak Areas</div>
+      <div id="d-weak">
+        <div style="color:var(--muted);font-size:.8rem;">Analyze skill gap first</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:.875rem;">
+    <div class="card-title">⚡ Quick Actions</div>
+    <div class="qa-grid">
+      <div class="qa" onclick="nav('resume')"><div class="qa-icon">📄</div><div class="qa-label">Analyze Resume</div></div>
+      <div class="qa" onclick="nav('interview')"><div class="qa-icon">🎤</div><div class="qa-label">Mock Interview</div></div>
+      <div class="qa" onclick="nav('skillgap')"><div class="qa-icon">📊</div><div class="qa-label">Skill Gap</div></div>
+      <div class="qa" onclick="nav('roadmap')"><div class="qa-icon">🗺️</div><div class="qa-label">My Roadmap</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🕐 Recent Activity</div>
+    <div id="d-feed"><div style="color:var(--muted);font-size:.8rem;">No recent activity</div></div>
+  </div>
+</div>

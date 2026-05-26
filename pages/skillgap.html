@@ -1,0 +1,57 @@
+<!-- ── SKILL GAP ── -->
+<div class="screen" id="s-skillgap">
+  <div class="ph"><div class="ph-title">📊 Skill Gap Analyzer</div><div class="ph-sub">Find out what skills you need for your target role</div></div>
+  <div class="two-col">
+    <div class="col-sm">
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Target Role</div>
+        <select class="form-select" id="sg-role">
+          <option>Frontend Developer</option><option>Backend Developer</option>
+          <option>Full Stack Developer</option><option>Data Analyst</option>
+          <option>ML Engineer</option><option>Product Manager</option>
+        </select>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Your Current Skills</div>
+        <textarea class="form-textarea" id="sg-skills" style="min-height:140px;" placeholder="React, JavaScript, HTML, CSS\nGit, Node.js\nPython"></textarea>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="sg-btn" onclick="doSG()">📊 Analyze Skill Gap →</button>
+      <div id="sg-load" class="loading-box" style="display:none;"><div class="spinner"></div><span>🤖 Analyzing...</span></div>
+    </div>
+    <div class="col-main" id="sg-results" style="display:none;">
+      <div class="card" style="margin-bottom:.875rem;">
+        <div style="display:flex;align-items:center;gap:1.25rem;">
+          <div class="ats-wrap">
+            <div class="ats-circle" id="sg-circle">
+              <div class="ats-num" id="sg-pct">0%</div>
+              <div class="ats-lbl">Match</div>
+            </div>
+          </div>
+          <div style="flex:1;font-size:.84rem;color:var(--text);line-height:1.65;" id="sg-sum"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Skills Overview</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--success);margin-bottom:.4rem;">✅ You Have</div>
+            <div class="tag-cloud" id="sg-have"></div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem;">❌ You Need</div>
+            <div class="tag-cloud" id="sg-need"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Category Breakdown</div>
+        <div id="sg-cats"></div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">🎯 Top Priorities</div>
+        <div id="sg-pri"></div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="goRoadmap()">🗺️ Generate My 30-Day Roadmap →</button>
+    </div>
+  </div>
+</div>

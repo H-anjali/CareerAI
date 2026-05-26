@@ -1,0 +1,34 @@
+<!-- ── ROADMAP ── -->
+<div class="screen" id="s-roadmap">
+  <div id="rm-form">
+    <div class="ph"><div class="ph-title">🗺️ Learning Roadmap</div><div class="ph-sub">Generate your personalized 30-day plan</div></div>
+    <div class="card" style="max-width:480px;margin:0 auto;">
+      <div class="form-group">
+        <label class="form-label">Target Role</label>
+        <input class="form-input" id="rm-role" placeholder="e.g. Frontend Developer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skills to Learn</label>
+        <textarea class="form-textarea" id="rm-skills" placeholder="e.g. TypeScript, Jest, Next.js"></textarea>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doRoadmap()">🚀 Generate Roadmap</button>
+    </div>
+  </div>
+  <div id="rm-load" class="loading-box" style="display:none;"><div class="spinner"></div><span>🤖 Building your personalized learning plan...</span></div>
+  <div id="rm-content" style="display:none;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.875rem;margin-bottom:1.25rem;">
+      <div>
+        <div class="ph-title" id="rm-title">30-Day Roadmap</div>
+        <div class="ph-sub" id="rm-ov"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="resetRM()">↩ New Roadmap</button>
+    </div>
+    <div class="cplt-wrap">
+      <div class="cplt-hdr"><span class="cplt-title">Overall Progress</span><span class="cplt-pct" id="rm-pct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="rm-bar" style="width:0%;background:linear-gradient(90deg,var(--primary),#06b6d4);"></div></div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:.3rem;" id="rm-lbl">0 of 0 steps</div>
+    </div>
+    <div id="rm-wk-ov" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem;"></div>
+    <div id="rm-wk-detail"></div>
+  </div>
+</div>

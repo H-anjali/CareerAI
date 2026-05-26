@@ -1,0 +1,115 @@
+<!-- ── INTERVIEW ── -->
+<div class="screen" id="s-interview">
+  <!-- Setup -->
+  <div id="iv-setup">
+    <div class="ph"><div class="ph-title">🎤 Mock Interview</div><div class="ph-sub">Practice with AI-generated questions</div></div>
+    <div style="max-width:560px;margin:0 auto;">
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Target Role</div>
+        <select class="form-select" id="iv-role">
+          <option>Frontend Developer</option><option>Backend Developer</option>
+          <option>Full Stack Developer</option><option>Data Analyst</option>
+          <option>ML Engineer</option><option>Product Manager</option>
+        </select>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Interview Type</div>
+        <div style="display:flex;gap:.625rem;flex-wrap:wrap;">
+          <button class="iv-type-btn active" data-t="Technical" onclick="pickType(this)">💻 Technical</button>
+          <button class="iv-type-btn" data-t="HR" onclick="pickType(this)">👔 HR</button>
+          <button class="iv-type-btn" data-t="Mixed" onclick="pickType(this)">🔀 Mixed</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;">
+        <div class="card-title">Questions</div>
+        <div style="display:flex;gap:.625rem;">
+          <button class="qc-btn active" data-n="3" onclick="pickQN(this)">3</button>
+          <button class="qc-btn" data-n="5" onclick="pickQN(this)">5</button>
+          <button class="qc-btn" data-n="7" onclick="pickQN(this)">7</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-title">Input Mode</div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-m="text" onclick="pickMode(this)">⌨️ Text</button>
+          <button class="mode-btn" data-m="voice" onclick="pickMode(this)">🎤 Voice</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="startIV()">Start Interview →</button>
+    </div>
+  </div>
+
+  <!-- Active -->
+  <div id="iv-active" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem;">
+      <div class="ph-title">Question <span id="iv-qn">1</span> of <span id="iv-qt">5</span></div>
+      <div style="display:flex;gap:.3rem;" id="iv-dots"></div>
+    </div>
+    <div id="iv-qload" class="loading-box" style="display:none;"><div class="spinner"></div><span>🤖 Generating question...</span></div>
+    <div id="iv-qarea">
+      <div class="q-card">
+        <div class="timer-bar"><div class="timer-fill" id="t-fill" style="width:100%"></div></div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem;">
+          <span class="tag tag-purple">🤖 AI Interviewer</span>
+          <span class="tag tag-blue" id="iv-qtype">Technical</span>
+          <span class="tag tag-gray" id="iv-qdiff">Medium</span>
+        </div>
+        <div id="iv-qtext" style="font-size:1rem;font-weight:600;color:var(--text);line-height:1.65;"></div>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;" id="text-area">
+        <div class="card-title">Your Answer</div>
+        <textarea class="form-textarea" id="iv-ans" placeholder="Type your detailed answer here..." style="min-height:130px;"></textarea>
+      </div>
+      <div class="card" style="margin-bottom:.875rem;display:none;" id="voice-area">
+        <div class="card-title">Voice Answer</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:.875rem;padding:.875rem 0;">
+          <button class="voice-btn voice-idle" id="v-btn" onclick="toggleVoice()">🎤</button>
+          <div id="v-status" style="font-size:.82rem;color:var(--muted);">Click to start recording</div>
+          <div id="v-transcript" style="width:100%;min-height:55px;padding:.625rem;background:#f8f7ff;border-radius:9px;font-size:.82rem;color:var(--text);border:1px solid var(--border);"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.625rem;">
+        <button class="btn btn-primary" onclick="submitAns()" id="sub-btn">Submit Answer →</button>
+        <button class="btn btn-secondary" onclick="skipQ()">Skip →</button>
+      </div>
+    </div>
+    <!-- Feedback -->
+    <div id="iv-fb" style="display:none;">
+      <div class="card" style="margin-bottom:.875rem;border-left:4px solid var(--primary);">
+        <div class="card-title">🤖 AI Feedback</div>
+        <div id="fb-text" style="font-size:.84rem;color:var(--text);line-height:1.7;margin-bottom:.875rem;"></div>
+        <div style="display:flex;gap:.625rem;flex-wrap:wrap;margin-bottom:.875rem;">
+          <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Correctness</div><span class="score-pill" id="p-cor">-</span></div>
+          <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Clarity</div><span class="score-pill" id="p-cla">-</span></div>
+          <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Depth</div><span class="score-pill" id="p-dep">-</span></div>
+        </div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">💡 Ideal Answer Points:</div>
+        <ul id="fb-pts" style="padding-left:1.1rem;font-size:.8rem;color:var(--text);line-height:1.75;"></ul>
+      </div>
+      <button class="btn btn-primary" onclick="nextQ()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- Complete -->
+  <div id="iv-done" style="display:none;">
+    <div class="ph"><div class="ph-title">🎉 Interview Complete!</div><div class="ph-sub">Here's how you performed</div></div>
+    <div class="card" style="text-align:center;margin-bottom:1.25rem;">
+      <div class="big-circle" id="big-circle">
+        <div class="big-num" id="big-num">0</div>
+        <div class="big-lbl">Overall Score</div>
+      </div>
+      <div id="perf-sum" style="margin-top:1rem;font-size:.84rem;color:var(--muted);max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7;"></div>
+    </div>
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Question Breakdown</div>
+      <table class="rtable">
+        <thead><tr><th>#</th><th>Question</th><th>Type</th><th>Score</th></tr></thead>
+        <tbody id="r-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:.625rem;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="resetIV()">↩ Try Again</button>
+      <button class="btn btn-primary" onclick="nav('skillgap')">📊 Analyse Your Skill Gap →</button>
+    </div>
+  </div>
+</div>
