@@ -747,27 +747,88 @@ function updateStreak(u){
 // ── AI ────────────────────────────────────────────────────────────────
 async function callAI(sys,msg){
   const full=`${sys}\n\nUser request: ${msg}`;
+  // honor mock toggle (quick offline/demo mode)
+  try{if(localStorage.getItem('careerAI_mock_ai')==='1'){const s=parseJSON(sys);if(s)return JSON.stringify(s);}}catch(e){}
+  // If user set an OpenAI key in localStorage, prefer that (developer option).
+  const openaiKey=localStorage.getItem('careerAI_openai_key');
+  if(openaiKey){
+    try{
+      const resp=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+openaiKey},body:JSON.stringify({model:'gpt-3.5-turbo',messages:[{role:'system',content:sys},{role:'user',content:msg}],temperature:0.2,max_tokens:1200})});
+      if(!resp.ok){const txt=await resp.text();console.warn('OpenAI error',txt);throw new Error('OpenAI request failed');}
+      const j=await resp.json();
+      const text=(j.choices||[]).map(c=>c.message?.content||'').join('\n');
+      return text;
+    }catch(e){console.warn('OpenAI fallback:',e);} }
+
+  // Try new Pollinations entry endpoint first
+  try{
+    const r2=await fetch('https://enter.pollinations.ai/',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'system',content:sys},{role:'user',content:msg}],model:'openai',jsonMode:false})
+    });
+    if(r2.ok){const t=await r2.text();if(/deprecated|IMPORTANT NOTICE|Please migrate/i.test(t)){console.warn('enter.pollinations returned notice');}else{return t;}}
+  }catch(e){console.warn('enter.pollinations failed',e);} 
+
+  // Fallback to legacy Pollinations endpoints
   try{
     const r=await fetch(`https://text.pollinations.ai/${encodeURIComponent(full)}`,{method:'GET',headers:{'Accept':'text/plain'}});
-    if(!r.ok)throw new Error();
-    return await r.text();
-  }catch{
+    if(r.ok){
+      const txt=await r.text();
+      if(/deprecated|IMPORTANT NOTICE|Please migrate/i.test(txt)){
+        console.warn('Pollinations returned deprecation notice');
+        return txt;
+      }
+      return txt;
+    }
+  }catch(e){console.warn('Pollinations GET failed',e);} 
+  try{
     const r=await fetch('https://text.pollinations.ai/',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({messages:[{role:'system',content:sys},{role:'user',content:msg}],model:'openai',jsonMode:false})
     });
-    if(!r.ok)throw new Error('AI unavailable');
-    return await r.text();
-  }
+    if(r.ok){
+      const txt=await r.text();
+      if(/deprecated|IMPORTANT NOTICE|Please migrate/i.test(txt)){
+        console.warn('Pollinations POST returned deprecation notice');
+        return txt;
+      }
+      return txt;
+    }
+  }catch(e){console.warn('Pollinations POST failed',e);} 
+
+  // As a last resort, return the system-sample JSON (if present) so app features still work offline.
+  try{const s=parseJSON(sys);if(s)return JSON.stringify(s);}catch(e){}
+  throw new Error('AI service unavailable');
 }
 
 function parseJSON(txt){
   try{
+    if(!txt||typeof txt!=='string')return null;
     txt=txt.replace(/```json\n?/gi,'').replace(/```\n?/gi,'').trim();
-    const s=txt.indexOf('{'),e=txt.lastIndexOf('}');
-    if(s<0||e<0)throw 0;
-    return JSON.parse(txt.slice(s,e+1));
-  }catch{return null;}
+    // find first opening brace and then find matching closing brace by counting
+    const start=txt.indexOf('{');
+    if(start<0)throw new Error('no json start');
+    let depth=0,end=-1;
+    for(let i=start;i<txt.length;i++){
+      const ch=txt[i];
+      if(ch==='{')depth++;
+      else if(ch==='}'){
+        depth--;
+        if(depth===0){end=i;break;}
+      }
+    }
+    if(end<0)throw new Error('no json end');
+    let candidate=txt.slice(start,end+1);
+    // remove common markdown/code fence leftovers and fix trailing commas
+    candidate=candidate.replace(/,\s*(,|\}|\])/g,',').replace(/,\s*([}\]])/g,'$1');
+    return JSON.parse(candidate);
+  }catch(e){
+    try{ // final fallback: try loose eval after cleaning non-json chars
+      const cleaned=txt.replace(/^[^\{]*/,'').replace(/[^\}]*$/,'');
+      const cleaned2=cleaned.replace(/,\s*([}\]])/g,'$1');
+      return JSON.parse(cleaned2);
+    }catch{return null;}
+  }
 }
 
 // ── FILE EXTRACTION ───────────────────────────────────────────────────
@@ -867,6 +928,11 @@ function loadApp(){
   document.getElementById('d-name').textContent=u.name.split(' ')[0];
   document.getElementById('st-name').value=u.name;
   document.getElementById('st-email').value=u.email;
+  // populate AI key field if present
+  const ak=document.getElementById('ai-key');
+  if(ak)ak.value=localStorage.getItem('careerAI_openai_key')||'';
+  const mk=document.getElementById('mock-ai-toggle');
+  if(mk)mk.checked=(localStorage.getItem('careerAI_mock_ai')==='1');
   nav('dashboard');
 }
 
@@ -1111,8 +1177,24 @@ async function doSG(){
     const sys=`You are a technical hiring manager at a top tech company. Analyze the skill gap for this internship role and return ONLY JSON with no markdown:
 {"have":["React","JavaScript","HTML","CSS","Git"],"missing":["TypeScript","Redux","Jest","Next.js","Webpack","Accessibility"],"categories":{"Core Language":{"score":65,"required":["JavaScript","TypeScript"],"have":["JavaScript"],"missing":["TypeScript"]},"Framework & Libraries":{"score":50,"required":["React","Next.js","Redux","React Query"],"have":["React"],"missing":["Next.js","Redux","React Query"]},"Testing":{"score":0,"required":["Jest","React Testing Library","Cypress"],"have":[],"missing":["Jest","React Testing Library","Cypress"]},"Build Tools":{"score":20,"required":["Webpack","Vite","npm scripts"],"have":["npm scripts"],"missing":["Webpack","Vite"]},"Design & UX":{"score":70,"required":["CSS","Responsive Design","Figma basics"],"have":["CSS","Responsive Design"],"missing":["Figma basics"]}},"overall_match":45,"priority":["TypeScript","Jest","Next.js"],"priority_reasons":["TypeScript is required in 90% of frontend job postings","Jest tests are mandatory in professional codebases","Next.js is the dominant React framework for production apps"],"summary":"You have a strong HTML/CSS/React foundation. Focus on TypeScript and testing next."}`;
     const res=await callAI(sys,`Role: ${role}\nMy skills: ${skills}`);
-    const d=parseJSON(res);
-    if(!d){toast('AI response unclear. Try again.','error');btn.disabled=false;document.getElementById('sg-load').style.display='none';return;}
+    console.log('AI raw response (skill gap):',res);
+    let d=parseJSON(res);
+    if(!d){
+      // try using the sample JSON included in the system prompt as a graceful fallback
+      const sample=parseJSON(sys);
+      if(sample){
+        console.warn('Using sample fallback JSON for skill gap due to AI response issues.');
+        d=sample;
+        toast('Using fallback analysis (AI service returned notice).','info');
+      }else{
+        // show debug panel with raw AI text for diagnosis
+        const dbg=document.getElementById('ai-debug');
+        if(dbg){dbg.textContent=res;dbg.style.display='block';}
+        console.error('Failed to parse AI response for skill gap');
+        toast('AI response unclear. Check console or debug panel.','error');
+        btn.disabled=false;document.getElementById('sg-load').style.display='none';return;
+      }
+    }
     _sgData=d;_sgData._role=role;_sgData._skills=skills;
     showSG(d);
     const u=getCU();u.skillMatch=d.overall_match||0;
@@ -1166,8 +1248,21 @@ async function doRoadmap(){
     const sys=`You are a senior software engineer and career mentor. Create a detailed 30-day learning roadmap and return ONLY JSON with no markdown:
 {"title":"30-Day Frontend Developer Roadmap","overview":"This roadmap closes your TypeScript and testing gaps through structured daily practice.","weeks":[{"week":1,"theme":"TypeScript Mastery","days":"Days 1–7","steps":[{"id":"w1s1","day_range":"Days 1–3","title":"TypeScript Fundamentals","description":"Master types, interfaces, enums, generics, and utility types.","project":"Typed calculator app with full type coverage","resources":["typescriptlang.org/docs/handbook","executeprogram.com/typescript"]},{"id":"w1s2","day_range":"Days 4–7","title":"React + TypeScript","description":"Props typing, hook typing, event types, component patterns in TS.","project":"Convert your best React project to TypeScript","resources":["react-typescript-cheatsheet.netlify.app","totaltypescript.com"]}]},{"week":2,"theme":"Next.js & Production React","days":"Days 8–14","steps":[{"id":"w2s1","day_range":"Days 8–11","title":"Next.js App Router","description":"File-based routing, server components, client components, data fetching patterns.","project":"Build a blog with Next.js App Router","resources":["nextjs.org/docs","nextjs.org/learn"]},{"id":"w2s2","day_range":"Days 12–14","title":"Performance & Deployment","description":"Core Web Vitals, lazy loading, code splitting, Vercel deployment.","project":"Deploy portfolio site, achieve Lighthouse score 90+","resources":["web.dev/learn","vercel.com/docs"]}]},{"week":3,"theme":"State Management & Testing","days":"Days 15–21","steps":[{"id":"w3s1","day_range":"Days 15–17","title":"Redux Toolkit","description":"createSlice, createAsyncThunk, RTK Query for server state.","project":"Shopping cart app with Redux Toolkit","resources":["redux-toolkit.js.org/introduction","redux.js.org/tutorials/essentials"]},{"id":"w3s2","day_range":"Days 18–21","title":"Jest + React Testing Library","description":"Unit tests, integration tests, mocking, achieving 70% coverage.","project":"Add full test suite to your TypeScript project","resources":["jestjs.io/docs/getting-started","testing-library.com/docs/react-testing-library/intro"]}]},{"week":4,"theme":"Capstone + Job Applications","days":"Days 22–30","steps":[{"id":"w4s1","day_range":"Days 22–26","title":"Capstone Project","description":"Build a full Next.js + TypeScript + Redux + tested application.","project":"Full-stack app — AI tool, dashboard, or marketplace","resources":["github.com/nicedoc/awesome-nextjs","vercel.com/templates"]},{"id":"w4s2","day_range":"Days 27–30","title":"Application Sprint","description":"Update resume, do 5 mock interviews, apply to 20 internships.","project":"Live deployed project + 20 internship applications sent","resources":["linkedin.com/jobs","wellfound.com","internshala.com"]}]}]}`;
     const res=await callAI(sys,`Role: ${role}\nSkills to learn: ${skills||'general skills for this role'}`);
-    const d=parseJSON(res);
-    if(!d)throw new Error('Parse failed');
+    console.log('AI raw response (roadmap):',res);
+    let d=parseJSON(res);
+    if(!d){
+      const sample=parseJSON(sys);
+      if(sample){
+        console.warn('Using sample fallback JSON for roadmap due to AI response issues.');
+        d=sample;
+        toast('Using fallback roadmap (AI service returned notice).','info');
+      }else{
+        const dbg=document.getElementById('ai-debug');
+        if(dbg){dbg.textContent=res;dbg.style.display='block';}
+        console.error('Failed to parse AI response for roadmap');
+        throw new Error('Parse failed');
+      }
+    }
     _rmCurrent=d;showRM(d);
     addAction('🗺️',`Generated 30-day roadmap for ${role}`);
     toast('Roadmap ready! Start learning 🚀');
@@ -1242,6 +1337,32 @@ function saveProfile(){
   toast('Profile updated ✅');
 }
 
+function saveAIKey(){
+  const k=document.getElementById('ai-key').value.trim();
+  if(k){localStorage.setItem('careerAI_openai_key',k);toast('OpenAI key saved (local browser storage).');}
+  else{localStorage.removeItem('careerAI_openai_key');toast('OpenAI key cleared.','info');}
+}
+
+function clearAIKey(){
+  document.getElementById('ai-key').value='';localStorage.removeItem('careerAI_openai_key');toast('OpenAI key cleared.','info');
+}
+
+function saveMockToggle(){
+  const v=document.getElementById('mock-ai-toggle').checked;
+  localStorage.setItem('careerAI_mock_ai',v?'1':'0');
+  toast('Mock AI '+(v?'enabled':'disabled'), 'info');
+}
+
+async function testOpenAIKey(){
+  const k=localStorage.getItem('careerAI_openai_key')||document.getElementById('ai-key').value.trim();
+  if(!k){toast('No OpenAI key found. Paste it in the field and Save.','error');return;}
+  try{
+    const r=await fetch('https://api.openai.com/v1/models',{headers:{'Authorization':'Bearer '+k}});
+    if(!r.ok)throw new Error('Invalid key or network error');
+    toast('OpenAI key looks valid ✅');
+  }catch(e){toast('OpenAI key test failed: '+(e.message||e),'error');}
+}
+
 function delAccount(){
   if(!confirm('Delete your account? This cannot be undone.'))return;
   const id=localStorage.getItem('careerAI_currentUser');
@@ -1281,5 +1402,6 @@ document.getElementById('su-cpass').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('li-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('li-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 </script>
+<div id="ai-debug" style="display:none;position:fixed;right:12px;bottom:72px;z-index:9999;max-width:420px;max-height:220px;overflow:auto;padding:12px;border-radius:8px;background:rgba(0,0,0,0.85);color:#fff;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);">AI debug panel</div>
 </body>
 </html>
